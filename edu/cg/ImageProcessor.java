@@ -125,35 +125,35 @@ public class ImageProcessor extends FunctioalForEachLoops {
 
         forEach((y, x) -> {
             Color c = new Color(greyImg.getRGB(x, y));
-            Color nextHorizontalColor;
-            Color nextVerticalColor;
-
-            if (x == inWidth - 1) {
-                nextHorizontalColor = new Color(greyImg.getRGB(x - 1, y));
+            Color prevHorizontalColor;
+            Color prevVerticalColor;
+            int dx, dy;
+            // edge pixel
+            if (x == 0 && y == 0) {
+                ans.setRGB(x, y, c.getRGB());
             } else {
-                nextHorizontalColor = new Color(greyImg.getRGB(x + 1, y));
+                // calculates horizontal derivative
+                if (x != 0) {
+                    prevHorizontalColor = new Color(greyImg.getRGB(x - 1, y));
+                    dx = c.getRed() - prevHorizontalColor.getRed();
+                } else {
+                    dx = 0;
+                }
+                // calculates vertical derivative
+                if (y != 0) {
+                    prevVerticalColor = new Color(greyImg.getRGB(x, y - 1));
+                    dy = (c.getRed() - prevVerticalColor.getRed());
+                } else {
+                    dy = 0;
+                }
+                // both gradients calculation
+                int res = (int) Math.sqrt((Math.pow(dx, 2) + Math.pow(dy, 2)) / 2);
+                int magnitude = Math.abs(255 - res);
+                // new grey pixel
+                Color color = new Color(magnitude, magnitude, magnitude);
+
+                ans.setRGB(x, y, color.getRGB());
             }
-
-            if (y == inHeight - 1) {
-                nextVerticalColor = new Color(greyImg.getRGB(x, y - 1));
-            } else {
-                nextVerticalColor = new Color(greyImg.getRGB(x, y + 1));
-            }
-            int dxR = (c.getRed() - nextHorizontalColor.getRed()) * r;
-            int dxG = (c.getGreen() - nextHorizontalColor.getGreen()) * g;
-            int dxB = (c.getBlue() - nextHorizontalColor.getBlue()) * b;
-
-            int dyR = (c.getRed() - nextVerticalColor.getRed()) * r;
-            int dyG = (c.getGreen() - nextVerticalColor.getGreen()) * g;
-            int dyB = (c.getBlue() - nextVerticalColor.getBlue()) * b;
-
-            int resR = (int) Math.sqrt((Math.pow(dxR, 2) + Math.pow(dyR, 2)) / 2);
-            int resG = (int) Math.sqrt((Math.pow(dxG, 2) + Math.pow(dyG, 2)) / 2);
-            int resB = (int) Math.sqrt((Math.pow(dxB, 2) + Math.pow(dyB, 2)) / 2);
-
-            Color color = new Color(resR, resG, resB);
-
-            ans.setRGB(x, y, color.getRGB());
         });
 
         logger.log("Calculating gradient magnitude done!");
