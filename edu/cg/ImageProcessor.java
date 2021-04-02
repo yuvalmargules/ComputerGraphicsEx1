@@ -116,10 +116,6 @@ public class ImageProcessor extends FunctioalForEachLoops {
 
         logger.log("Calculating gradient magnitude...");
 
-        int r = rgbWeights.redWeight;
-        int g = rgbWeights.greenWeight;
-        int b = rgbWeights.blueWeight;
-
         BufferedImage greyImg = greyscale(); // greyscale the original image
         BufferedImage ans = newEmptyInputSizedImage(); // the new image to be output
 
@@ -165,54 +161,58 @@ public class ImageProcessor extends FunctioalForEachLoops {
     public BufferedImage bilinear() {
 
         logger.log("applies bilinear interpolation");
-        BufferedImage ans = newEmptyOutputSizedImage();
 
         pushForEachParameters();
         setForEachOutputParameters();
+        BufferedImage ans = newEmptyOutputSizedImage();
 
-        double prev_imgX = 0;
-        double prev_imgY = 0;
         forEach((y, x) -> {
-            double imgX = x * inWidth / (float) outWidth;
-            double imgY = y * inHeight / (float) outHeight;
-
+            // a pixel's coordinates in the resized image
+            float imgX = x * inWidth / (float) outWidth;
+            float imgY = y * inHeight / (float) outHeight;
+            // creating a combination of 4 points
             int x1 = (int) Math.floor(imgX);
-            int x2 = (int) Math.ceil(imgX);
             int y1 = (int) Math.floor(imgY);
+            int x2 = (int) Math.ceil(imgX);
             int y2 = (int) Math.ceil(imgY);
+            // the new rgb value in y=y1 between x1,x2
+            int c11 = this.workingImage.getRGB(x1, y1);
+            int c21 = this.workingImage.getRGB(x2, y1);
+            int dx1 = distanceWeight(x2 - imgX, c11, c21);
+            // the new rgb value in y=y2 between x1,x2
+            int c12 = this.workingImage.getRGB(x1, y2);
+            int c22 = this.workingImage.getRGB(x2, y2);
+            int dx2 = distanceWeight(x2 - imgX, c12, c22);
+            // the final rgb value for the chosen point to represent a pixel
+            int dy = distanceWeight(y2 - imgY, dx1, dx2);
 
-            int c1 = workingImage.getRGB(x1, y1);
-            int c2 = workingImage.getRGB(x2, y1);
-            int c3 = workingImage.getRGB(x1, y2);
-            int c4 = workingImage.getRGB(x2, y2);
-
-            if (x1 != x2) {
-
-                double t = (imgX - x1) / (x2 - x1);
-                double c12 = t * c2 + (1 - t) * c1;
-
-                if (y1 != y2) {
-                    double c34 = t * c4 + (1 - t) * c3;
-                    double s = (imgY - y1) / (y2 - y1);
-                    double c = (1 - s) * c12 + s * c34;
-
-                    ans.setRGB(x, y, (int) c);
-
-                } else ans.setRGB(x, y, (int) c12);
-                // if x1 = x2
-            } else if (y1 != y2) {
-                double s = (imgY - y1) / (y2 - y1);
-                double c = (1 - s) * c1 + s * c3;
-
-                ans.setRGB(x, y, (int) c);
-            } else ans.setRGB(x, y, workingImage.getRGB((int) imgX, (int) imgY));
+            ans.setRGB(x, y, dy);
         });
 
         popForEachParameters();
-
         return ans;
     }
 
+    private int distanceWeight(float d, int c1, int c2) {
+        // gets rgb for one edge pixel
+        int r1 = (c1 >> 16) & 255;
+        int g1 = (c1 >> 8) & 255;
+        int b1 = c1 & 255;
+        // gets rgb for the other edge pixel
+        int r2 = (c2 >> 16) & 255;
+        int g2 = (c2 >> 8) & 255;
+        int b2 = c2 & 255;
+        // calculates weighted sum
+        int new_r = (int) (d * r1 + (1 - d) * r2);
+        int new_g = (int) (d * g1 + (1 - d) * g2);
+        int new_b = (int) (d * b1 + (1 - d) * b2);
+        // init rgb inside int the same as getRGB works
+        int rgb = new_r << 8;
+        rgb = (rgb | new_g) << 8;
+        rgb |= new_b;
+        // returns the rgb int value of the new pixel
+        return rgb;
+    }
 
     //MARK: Utilities
     public final void setForEachInputParameters() {
