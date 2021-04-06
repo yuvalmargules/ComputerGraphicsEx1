@@ -144,7 +144,7 @@ public class ImageProcessor extends FunctioalForEachLoops {
                 }
                 // both gradients calculation
                 int res = (int) Math.sqrt((Math.pow(dx, 2) + Math.pow(dy, 2)) / 2);
-                int magnitude = Math.abs(255 - res);
+                int magnitude = Math.abs(res);
                 // new grey pixel
                 Color color = new Color(magnitude, magnitude, magnitude);
 
