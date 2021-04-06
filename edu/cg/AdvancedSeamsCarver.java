@@ -23,7 +23,56 @@ public class AdvancedSeamsCarver extends BasicSeamsCarver {
 		}
 		else {
 			// TODO: Implement the additional seam carving functionalities that AdvancedSeamsCarver offers.
-			throw new UnimplementedMethodException("carveImage");
+			BufferedImage output = duplicateWorkingImage();
+			carveImage(carveScheme);
+			if(carveScheme == CarvingScheme.VERTICAL_HORIZONTAL){
+				duplicateVerticalSeam(output);
+				duplicateHorizontalSeam(output);
+			}
+			else if(carveScheme == CarvingScheme.HORIZONTAL_VERTICAL){
+				duplicateHorizontalSeam(output);
+				duplicateVerticalSeam(output);
+			}
+			return output;
 		}
 	}
+
+
+	private void duplicateVerticalSeam(BufferedImage output) {
+		int nextRGB, temp;
+		Coordinate[] seam;
+
+		for(int j = 0; j < verticalSeamsCount; j++) {
+			seam = verticalSeamsRecord[j];
+
+			for (int i = 0; i < seam.length; i++) {
+				nextRGB = output.getRGB(seam[i].X, seam[i].Y);
+				for (int x = seam[i].X + 1; x < output.getWidth(); x++) {
+					temp = output.getRGB(x, seam[i].Y);
+					output.setRGB(x, seam[i].Y, nextRGB);
+					nextRGB = temp;
+				}
+			}
+		}
+	}
+
+	private void duplicateHorizontalSeam(BufferedImage output) {
+		int nextRGB, temp;
+		Coordinate[] seam;
+
+		for(int j = 0; j < horizontalSeamsCount; j++) {
+			seam = horizontalSeamsRecord[j];
+
+			for (int i = 0; i < seam.length; i++) {
+				nextRGB = output.getRGB(seam[i].X, seam[i].Y);
+				for (int y = seam[i].Y + 1; y < output.getHeight(); y++) {
+					temp = output.getRGB(seam[i].X, y);
+					output.setRGB(seam[i].X, y, nextRGB);
+					nextRGB = temp;
+				}
+			}
+		}
+	}
+
+
 }

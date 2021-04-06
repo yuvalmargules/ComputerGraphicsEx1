@@ -95,11 +95,11 @@ public class BasicSeamsCarver extends ImageProcessor {
 
 		if(showVerticalSeams){
 			carveVerticalSeams(numberOfVerticalSeamsToCarve);
-			return getVerticalSeamPaintedImg(seamColorRGB);
+			return getSeamPaintedImg(seamColorRGB, true);
 			}
 		else {
 			carveHorizontalSeams(numberOfHorizontalSeamsToCarve);
-			return getHorizontalSeamPaintedImg(seamColorRGB);
+			return getSeamPaintedImg(seamColorRGB, false);
 		}
 	}
 
@@ -135,18 +135,17 @@ public class BasicSeamsCarver extends ImageProcessor {
 		}
 	}
 
-	private BufferedImage getHorizontalSeamPaintedImg(int seamColorRGB) {
-		BufferedImage img = duplicateWorkingImage();
-		for( int i = 0; i < horizontalSeamsCount; i++){
-			paintSeam(img, horizontalSeamsRecord[i], seamColorRGB);
+	private BufferedImage getSeamPaintedImg(int seamColorRGB, Boolean isVertical) {
+		int count = horizontalSeamsCount;
+		Coordinate[][] record = horizontalSeamsRecord;
+		if( isVertical){
+			count = verticalSeamsCount;
+			record = verticalSeamsRecord;
 		}
 
-		return img;
-	}
-	private BufferedImage getVerticalSeamPaintedImg(int seamColorRGB) {
 		BufferedImage img = duplicateWorkingImage();
-		for( int i = 0; i < verticalSeamsCount; i++){
-			paintSeam(img, verticalSeamsRecord[i], seamColorRGB);
+		for( int i = 0; i < count; i++){
+			paintSeam(img, record[i], seamColorRGB);
 		}
 
 		return img;
